@@ -1,55 +1,81 @@
 import random
+import time
+from colorama import init, Fore
 
-listOfChoices = ["left", "middle", "right"]
-listOfPrizes = ["Disney Cruise ticket", "a Ferrari", "a mansion in Beverly Hills", "a giraffe", "Jordan Air 1s"]
+# Initialize colorama for colorful terminal output
+init(autoreset=True)
 
-def myIntro():
-    print("|| Welcome to my Cup game. Please follow the instructions in order to play. ||")
 
-def showPrizes():
-    print("Here are the available prizes:")
-    for prize in listOfPrizes:
-        print(f"- {prize}")
+class CupGame:
+    def __init__(self):
+        self.choices = ["left", "middle", "right"]
+        self.prizes = [
+            "a Disney Cruise ticket",
+            "a Ferrari",
+            "a mansion in Beverly Hills",
+            "a giraffe",
+            "Jordan Air 1s"
+        ]
+        self.wins = 0
+        self.losses = 0
 
-def showRules():
-    print("Here are the rules of the game:")
-    print("- You must choose which cup you think the prize is in (left, middle, or right).")
-    print("- If you guess correctly, you win the prize in the cup!")
-    print("- If you guess incorrectly, you don't win anything :(")
-    print("- You can play as many times as you want until you choose to stop. Keep in mind the winning cup will be switched each time.")
+    def show_intro(self):
+        print(Fore.CYAN + "|| Welcome to the Legendary Cup Game ||")
+        time.sleep(1)
+        print("Try to guess which cup hides the prize!\n")
 
-def Points():
-    numWins = 0
-    numLosses = 0
-    while True:
-        userSelect = input("Choose which cup you think the prize is in (left, middle, right): ").lower()
-        prizeCup = random.choice(listOfChoices)
-        bigPrize = random.choice(listOfPrizes)
-        if userSelect == prizeCup:
-            numWins += 1
-            print(f"You guessed correctly. You won {bigPrize}!!! It was the {prizeCup} cup. \n")
-        else: 
-            numLosses += 1
-            print(f"You lost!!! It was the {prizeCup}.\n")
-        play_again = input("Would you like to play again? (y/n):").lower()
-        if play_again == "n":
-            print(f"You won {numWins} times and lost {numLosses} times. Thanks for playing!")
-            return numWins, numLosses
-            break
+    def show_rules(self):
+        print(Fore.YELLOW + "Game Rules:")
+        print("- Choose a cup: left, middle, or right.")
+        print("- Guess correctly to win a random prize.")
+        print("- Incorrect guesses don't win anything.")
+        print("- Your score will be tracked.\n")
 
-myIntro()
-showRulesPrompt = input("Do you want to see the rules of the game? (y/n)").lower()
-if showRulesPrompt == "y":
-    showRules()
+    def validate_choice(self, choice):
+        return choice in self.choices
 
-    begin = input("Would you like to play the Legendary Cup Game? (y/n):").lower()
-    if begin != "y":
-        userSelect
-    Points()
-while True:
-    play_again = input("Are you sure you would like to quit the game? Saying 'n' will restart the game. (y/n): ").lower()
-    if play_again == "n":
-        Points()
-    elif play_again == "y":
-        print("Thanks for playing the game. Now get lost!")
-        break
+    def play_round(self):
+        prize_cup = random.choice(self.choices)
+        prize = random.choice(self.prizes)
+        user_choice = input("Choose a cup (left, middle, right): ").lower()
+
+        while not self.validate_choice(user_choice):
+            user_choice = input("Invalid input. Choose left, middle, or right: ").lower()
+
+        time.sleep(0.5)
+        print(Fore.MAGENTA + "Shuffling cups...")
+        time.sleep(1)
+
+        if user_choice == prize_cup:
+            self.wins += 1
+            print(Fore.GREEN + f"You guessed right! 🎉 You won {prize} in the {prize_cup} cup.\n")
+        else:
+            self.losses += 1
+            print(Fore.RED + f"Nope! The prize was in the {prize_cup} cup. Try again!\n")
+
+    def show_summary(self):
+        print(Fore.CYAN + f"\nGame Over. You won {self.wins} time(s) and lost {self.losses} time(s).")
+        self.save_score()
+
+    def save_score(self):
+        with open("score_history.txt", "a") as f:
+            f.write(f"Wins: {self.wins}, Losses: {self.losses}\n")
+
+    def run(self):
+        self.show_intro()
+        if input("Would you like to see the rules? (y/n): ").lower() == "y":
+            self.show_rules()
+
+        while True:
+            self.play_round()
+            again = input("Play again? (y/n): ").lower()
+            if again != "y":
+                break
+
+        self.show_summary()
+
+
+# Run the game
+if __name__ == "__main__":
+    game = CupGame()
+    game.run()
