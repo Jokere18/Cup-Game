@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Cup Shifter </title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .game-setup {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        select, button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        select {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            min-width: 200px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .game-area {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .cups-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .cup {
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border: 3px solid #333;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            text-transform: capitalize;
+        }
+        
+        .cup:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        
+        .cup.selected {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        
+        .cup.shuffling {
+            animation: shuffle 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes shuffle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .game-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .message.success {
+            background: rgba(76, 175, 80, 0.8);
+        }
+        
+        .message.error {
+            background: rgba(244, 67, 54, 0.8);
+        }
+        
+        .message.info {
+            background: rgba(33, 150, 243, 0.8);
+        }
+        
+        .statistics {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .time-warning {
+            color: #ff6b6b;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .cups-container {
+                gap: 10px;
+            }
+            
+            .cup {
+                width: 60px;
+                height: 80px;
+                font-size: 0.8em;
+            }
+            
+            .game-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Cup Shifter 🏆</h1>
+        
+        <!-- Game Setup -->
+        <div id="setup-area" class="game-setup">
+            <div class="form-group">
+                <label for="difficulty">Select Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy (2 cups)</option>
+                    <option value="medium" selected>Medium (3 cups)</option>
+                    <option value="hard">Hard (4 cups)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="game-mode">Select Game Mode:</label>
+                <select id="game-mode">
+                    <option value="classic" selected>Classic (Play until you quit)</option>
+                    <option value="timed">Timed (30 second time limit)</option>
+                    <option value="streak">Streak (Win 10 rounds in a row)</option>
+                </select>
+            </div>
+            
+            <button id="start-game" onclick="startGame()">Start Game</button>
+            <button id="show-stats" onclick="showStatistics()">Show Statistics</button>
+        </div>
+        
+        <!-- Game Area -->
+        <div id="game-area" class="game-area hidden">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Round</div>
+                    <div id="round-number" class="info-value">1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Wins</div>
+                    <div id="wins" class="info-value">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Losses</div>
+                    <div id="losses" class="info-value">0</div>
+                </div>
+                <div id="time-info" class="info-item hidden">
+                    <div class="info-label">Time Remaining</div>
+                    <div id="time-remaining" class="info-value">30s</div>
+                </div>
+            </div>
+            
+            <div id="cups-container" class="cups-container">
+                <!-- Cups will be generated dynamically -->
+            </div>
+            
+            <div id="game-controls">
+                <button id="end-game" onclick="endGame()">End Game</button>
+            </div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="message-area"></div>
+        
+        <!-- Statistics -->
+        <div id="statistics-area" class="statistics hidden">
+            <h3>Game Statistics</h3>
+            <div id="stats-content">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading statistics...</p>
+                </div>
+            </div>
+            <button onclick="hideStatistics()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            active: false,
+            difficulty: 'medium',
+            gameMode: 'classic',
+            config: null,
+            shuffling: false
+        };
+        
+        let timeInterval = null;
+
+        async function startGame() {
+            const difficulty = document.getElementById('difficulty').value;
+            const gameMode = document.getElementById('game-mode').value;
+            
+            try {
+                showMessage('Starting game...', 'info');
+                
+                const response = await fetch('/api/start_game', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        difficulty: difficulty,
+                        game_mode: gameMode
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    gameState.active = true;
+                    gameState.difficulty = difficulty;
+                    gameState.gameMode = gameMode;
+                    gameState.config = data.config;
+                    
+                    setupGameArea();
+                    showMessage(data.message, 'success');
+                    
+                    // Start time tracking for timed mode
+                    if (gameMode === 'timed') {
+                        startTimeTracking();
+                    }
+                } else {
+                    showMessage(data.error || 'Failed to start game', 'error');
+                }
+            } catch (error) {
+                console.error('Error starting game:', error);
+                showMessage('Failed to start game', 'error');
+            }
+        }
+        
+        function setupGameArea() {
+            document.getElementById('setup-area').classList.add('hidden');
+            document.getElementById('game-area').classList.remove('hidden');
+            
+            // Show time info for timed mode
+            if (gameState.gameMode === 'timed') {
+                document.getElementById('time-info').classList.remove('hidden');
+            }
+            
+            generateCups();
+            updateGameInfo();
+        }
+        
+        function generateCups() {
+            const container = document.getElementById('cups-container');
+            container.innerHTML = '';
+            
+            gameState.config.cups.forEach(cup => {
+                const cupElement = document.createElement('div');
+                cupElement.className = 'cup';
+                cupElement.textContent = cup;
+                cupElement.onclick = () => selectCup(cup);
+                container.appendChild(cupElement);
+            });
+        }
+        
+        async function selectCup(choice) {
+            if (gameState.shuffling || !gameState.active) return;
+            
+            try {
+                gameState.shuffling = true;
+                
+                // Visual feedback
+                document.querySelectorAll('.cup').forEach(cup => {
+                    cup.classList.remove('selected');
+                    if (cup.textContent === choice) {
+                        cup.classList.add('selected');
+                    }
+                    cup.classList.add('shuffling');
+                });
+                
+                showMessage('Shuffling cups...', 'info');
+                
+                // Wait for shuffle animation
+                await new Promise(resolve => setTimeout(resolve, gameState.config.shuffle_time * 1000));
+                
+                const response = await fetch('/api/play_round', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        choice: choice
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove shuffling animation
+                document.querySelectorAll('.cup').forEach(cup => {
+                    cup.classList.remove('shuffling', 'selected');
+                });
+                
+                if (data.won_round) {
+                    showMessage(`🎉 You won ${data.prize} in the ${data.prize_cup} cup!`, 'success');
+                } else {
+                    showMessage(`❌ The prize was in the ${data.prize_cup} cup. Try again!`, 'error');
+                }
+                
+                if (data.game_over) {
+                    handleGameOver(data);
+                } else {
+                    updateGameInfo(data.current_score, data.round_number, data.time_remaining);
+                }
+                
+                gameState.shuffling = false;
+                
+            } catch (error) {
+                console.error('Error playing round:', error);
+                showMessage('Failed to play round', 'error');
+                gameState.shuffling = false;
+                
+                // Remove animations on error
+                document.querySelectorAll('.cup').forEach(cup => {
+                    cup.classList.remove('shuffling', 'selected');
+                });
+            }
+        }
+        
+        function updateGameInfo(score = null, round = null, timeRemaining = null) {
+            if (score) {
+                document.getElementById('wins').textContent = score.wins;
+                document.getElementById('losses').textContent = score.losses;
+            }
+            
+            if (round) {
+                document.getElementById('round-number').textContent = round;
+            }
+            
+            if (timeRemaining !== null && gameState.gameMode === 'timed') {
+                const timeElement = document.getElementById('time-remaining');
+                timeElement.textContent = `${Math.ceil(timeRemaining)}s`;
+                
+                if (timeRemaining <= 10) {
+                    timeElement.classList.add('time-warning');
+                } else {
+                    timeElement.classList.remove('time-warning');
+                }
+            }
+        }
+        
+        function startTimeTracking() {
+            timeInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/game_status');
+                    const data = await response.json();
+                    
+                    if (!data.game_active) {
+                        if (data.game_over) {
+                            handleGameOver({
+                                game_over: true,
+                                reason: data.reason || 'Game ended',
+                                final_score: data.final_score || { wins: 0, losses: 0 }
+                            });
+                        }
+                        return;
+                    }
+                    
+                    if (data.time_remaining !== null) {
+                        updateGameInfo(data.current_score, data.round_number, data.time_remaining);
+                    }
+                } catch (error) {
+                    console.error('Error checking game status:', error);
+                }
+            }, 1000);
+        }
+        
+        function handleGameOver(data) {
+            gameState.active = false;
+            
+            if (timeInterval) {
+                clearInterval(timeInterval);
+                timeInterval = null;
+            }
+            
+            let message = `Game Over! ${data.reason || ''}\n`;
+            message += `Final Score: ${data.final_score.wins} wins, ${data.final_score.losses} losses`;
+            
+            if (data.duration) {
+                message += `\nGame Duration: ${data.duration.toFixed(1)} seconds`;
+            }
+            
+            showMessage(message, 'info');
+            
+            // Return to setup
+            setTimeout(() => {
+                document.getElementById('game-area').classList.add('hidden');
+                document.getElementById('setup-area').classList.remove('hidden');
+                document.getElementById('time-info').classList.add('hidden');
+                resetGameInfo();
+            }, 3000);
+        }
+        
+        async function endGame() {
+            if (!gameState.active) return;
+            
+            try {
+                const response = await fetch('/api/end_game', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    handleGameOver({
+                        game_over: true,
+                        reason: 'Game ended by player',
+                        final_score: data.final_score,
+                        duration: data.duration
+                    });
+                } else {
+                    showMessage(data.error || 'Failed to end game', 'error');
+                }
+            } catch (error) {
+                console.error('Error ending game:', error);
+                showMessage('Failed to end game', 'error');
+            }
+        }
+        
+        function resetGameInfo() {
+            document.getElementById('wins').textContent = '0';
+            document.getElementById('losses').textContent = '0';
+            document.getElementById('round-number').textContent = '1';
+            document.getElementById('time-remaining').textContent = '30s';
+        }
+        
+        async function showStatistics() {
+            document.getElementById('statistics-area').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/statistics');
+                const data = await response.json();
+                
+                displayStatistics(data);
+            } catch (error) {
+                console.error('Error fetching statistics:', error);
+                document.getElementById('stats-content').innerHTML = '<p>Failed to load statistics</p>';
+            }
+        }
+        
+        function displayStatistics(stats) {
+            const content = document.getElementById('stats-content');
+            
+            if (stats.overall.total_sessions === 0) {
+                content.innerHTML = '<p>No game history found. Play some games to see statistics!</p>';
+                return;
+            }
+            
+            const overall = stats.overall;
+            const winRate = overall.total_wins + overall.total_losses > 0 
+                ? ((overall.total_wins / (overall.total_wins + overall.total_losses)) * 100).toFixed(1)
+                : 0;
+            
+            let html = `
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="info-label">Total Sessions</div>
+                        <div class="info-value">${overall.total_sessions}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="info-label">Total Wins</div>
+                        <div class="info-value">${overall.total_wins}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="info-label">Total Losses</div>
+                        <div class="info-value">${overall.total_losses}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="info-label">Win Rate</div>
+                        <div class="info-value">${winRate}%</div>
+                    </div>
+                </div>
+            `;
+            
+            if (overall.avg_duration) {
+                html += `
+                    <div class="stat-item">
+                        <div class="info-label">Average Duration</div>
+                        <div class="info-value">${overall.avg_duration.toFixed(1)}s</div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+        }
+        
+        function hideStatistics() {
+            document.getElementById('statistics-area').classList.add('hidden');
+        }
+        
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('message-area');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+            
+            messageArea.innerHTML = '';
+            messageArea.appendChild(messageDiv);
+            
+            // Auto-hide after 5 seconds for success/error messages
+            if (type !== 'info') {
+                setTimeout(() => {
+                    if (messageArea.contains(messageDiv)) {
+                        messageArea.removeChild(messageDiv);
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            resetGameInfo();
+        });
+    </script>
+</body>
+</html>
